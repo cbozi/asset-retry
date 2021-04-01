@@ -38,8 +38,7 @@ function retry(target) {
 
 function handleErrorEvent(evt) {
     const target = evt.target
-
-    if (!evt.target) {
+    if (!target) {
         return
     }
 
@@ -50,7 +49,7 @@ function handleErrorEvent(evt) {
         } else {
             reportFns.forEach((fn) => {
                 if (typeof fn === 'function') {
-                    fn(evt)
+                    fn(target, evt)
                 }
             })
         }
