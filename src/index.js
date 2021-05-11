@@ -23,6 +23,9 @@ function retry(target) {
             }
 
             let retryTimes = parseInt(target.dataset.retryTimes || '', 10) || 0
+            if (retryTimes >= domain.count) {
+                return
+            }
             domain.cur = (domain.cur + 1) % domain.count
             const newSrc = url.replace(
                 match[0],
