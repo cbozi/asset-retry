@@ -84,15 +84,29 @@ export function addRetryDomain(domain, count, selector) {
 }
 
 /**
+ * @deprecated 命名错误，将在未来移除，请使用registerReportFn
  * @param {function} fn 如果没有添加匹配的域名，就调用这个函数。
  */
 export function registerReporFn(fn) {
     reportFns.push(fn)
 }
 
-if (Array.isArray(window._errs)) {
-    window._errs.forEach(handleErrorEvent)
-    window.removeEventListener('error', window._errs.fn)
+/**
+ * @param {function} fn 如果没有添加匹配的域名，就调用这个函数。
+ */
+export function registerReportFn(fn) {
+    reportFns.push(fn)
 }
 
-window.addEventListener('error', handleErrorEvent, true)
+/**
+ * 调用次方法后才会真正开始资源重试
+ */
+export function startRetry() {
+    if (Array.isArray(window._errs)) {
+        window._errs.forEach(handleErrorEvent)
+        window.removeEventListener('error', window._errs.fn)
+    }
+
+    window.addEventListener('error', handleErrorEvent, true)
+}
+

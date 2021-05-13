@@ -32,7 +32,7 @@ npm install --save @fenbi/resource-retry
 ### Example
 
 ```javascript
-import { addRetryDomain, registerReportFn } from '@fenbi/resource-retry'
+import { addRetryDomain, registerReportFn， startRetry } from '@fenbi/resource-retry'
 import { captureMessage } from '@sentry/browser'
 
 if (process.env.NODE_ENV === 'production') {
@@ -50,6 +50,8 @@ registerReportFn((target) => {
             })
     }
 })
+startRetry()
+
 ```
 
 加载错误可能在 JS 执行前发生，因此建议在 html 文件头部添加
