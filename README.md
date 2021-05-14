@@ -1,4 +1,4 @@
-# @fenbi/resource-retry
+# @yuanfudao/resource-retry
 
 CDN 资源加载错误重试
 
@@ -13,7 +13,7 @@ CDN 资源加载错误重试
 ## Install
 
 ```
-npm install --save @fenbi/resource-retry
+npm install --save @yuanfudao/resource-retry
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ npm install --save @fenbi/resource-retry
 ### Example
 
 ```javascript
-import { addRetryDomain, registerReportFn， startRetry } from '@fenbi/resource-retry'
+import { addRetryDomain, registerReportFn， startRetry } from '@yuanfudao/resource-retry'
 import { captureMessage } from '@sentry/browser'
 
 if (process.env.NODE_ENV === 'production') {

@@ -67,7 +67,7 @@ function handleErrorEvent(evt) {
 export function addRetryDomain(domain, count, selector) {
     const match = domain.match(SUBDOMAIN_REGX)
     if (!match) {
-        console.warn(`[@fenbi/resource-retry warning]: ${domain} is not a valid domain`)
+        console.warn(`[@yuanfudao/resource-retry warning]: ${domain} is not a valid domain`)
         return
     }
 
