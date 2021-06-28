@@ -1,10 +1,22 @@
-import babel from '@rollup/plugin-babel'
+import { terser } from 'rollup-plugin-terser'
+import typescript from 'rollup-plugin-typescript2'
 
-export default {
-    input: "src/index.js",
+export default [
+  {
+    input: 'src/index-umd.ts',
     output: {
-        file: "dist/index.js",
-        format: "es",
+      file: 'dist/index.umd.min.js',
+      format: 'umd',
+      name: '@yuanfudao/resource-retry'
     },
-    plugins: [babel({ babelHelpers: "bundled" })],
-};
+    plugins: [typescript({ useTsconfigDeclarationDir: true }), terser()]
+  },
+  {
+    input: 'src/index.ts',
+    output: {
+      file: 'dist/index.esm.js',
+      format: 'es',
+    },
+    plugins: [typescript({ useTsconfigDeclarationDir: true })]
+  }
+]

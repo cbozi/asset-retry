@@ -18,57 +18,93 @@ npm install --save @yuanfudao/resource-retry
 
 ## Usage
 
-#### `addRetryDomain(domain, count, [selector])`
+### `initRetry`
 
--   domain : 完整的 CDN 域名或域名前缀，如果只提供域名前缀则默认匹配${domain}.fbcontent.cn
--   count : alias 个数。例如 count 为 3 则会重试 a.b.com a1.b.com, a2.b.com
+调用此方法后才会真正开始资源重试
+
+### `addRetryDomain`
+`(baseDomain: string, domainsCount: number, selector?: string | undefined): void;`
+-   baseDomain : 完整的 CDN 域名或域名前缀，如果只提供域名前缀则默认匹配${domain}.fbcontent.cn
+-   domainsCount : alias 个数。例如 count 为 3 则会重试 a.b.com a1.b.com, a2.b.com
+-   selector: optional，CSS selector，仅匹配这个 selector 的元素才会重试
+`addRetryDomain(domains: string[], selector?: string | undefined): void;`
+- domains: 域名列表，前一个域名加载失败按顺序重试下一个，直到最后一个
 -   selector: optional，CSS selector，仅匹配这个 selector 的元素才会重试
 
-#### `registerReportFn(evt)`
+### `registerReportFn`
 
--   fn : (evt: Event) => void
-    如果没有添加匹配的域名，就调用这个函数。
+`registerReportFn: (fn: (info: RetryInfo) => void;) => void;`
+```
+interface RetryInfo {
+    url?: string;
+    $target?: HTMLElement;
+}
+```
+如果重试过所有域名直到最后一个，最后一个也加载错误则调用传入的函数进行上报。
+
+### `retryDynamicImport`
+
+使用：
+```js
+import { retryDynamicImport } from '@yuanfudao/resource-retry'
+// import('./hello.js').then()
+// modify original code to 
+retryDynamicImport(() => import('./hello.js')).then()
+```
+需要在这之前调用addRetryDomain配置重试的域名，如果已经在HTML中配置过则不需要重复配置。
+
 
 ### Example
 
-```javascript
-import { addRetryDomain, registerReportFn， startRetry } from '@yuanfudao/resource-retry'
-import { captureMessage } from '@sentry/browser'
+详情查看example目录
 
-if (process.env.NODE_ENV === 'production') {
-    addRetryDomain('gallery.fbcontent.cn', 3)
-    addRetryDomain('ydfa', 3) // 只传前缀，相当于ydfa.fbcontent.cn
-} else {
-    addRetryDomain('ytkgallery.yuanfudao.biz', 3)
-}
+为了能够重试js文件的加载错误，推荐在HTML文件中写入index.umd.min.js的代码。
 
-registerReportFn((target) => {
-    if (process.env.NODE_ENV === 'production') {
-        navigator.onLine &&
-            captureMessage('Load Error ' + target.tagName + ': ' + target.src || target.href, {
-                tags: { errType: 'ERR_LOAD' }
-            })
+index.pug
+```pug
+head
+  meta(charset='UTF-8')
+  meta(http-equiv='X-UA-Compatible' content='IE=edge')
+  meta(name='viewport' content='width=device-width, initial-scale=1.0')
+  title Test
+  script.
+    !{resourceRetryScript} // avoid escaping
+  script.
+    var ResourceRetry = window['@yuanfudao/resource-retry']
+    if (ResourceRetry) {
+      ResourceRetry.addRetryDomain(['blocked.cdn.com', 'fallback.cdn.com'])
+      ResourceRetry.initRetry()
     }
-})
-startRetry()
-
+  link(rel='stylesheet' href='http://blocked.cdn.com/index.css')
+body
+  main
+    img(src='http://blocked.cdn.com/logo.png')
+  script(src='http://blocked.cdn.com/index.js')
 ```
 
-加载错误可能在 JS 执行前发生，因此建议在 html 文件头部添加
+webpack.config.js
+```js
+const fs = require("fs");
+const HtmlPlugin = require("html-webpack-plugin");
+const resourceRetryScript = fs.readFileSync(
+  require.resolve("@yuanfudao/resource-retry/dist/index.umd.min.js")
+);
 
-```html
-<script>
-    window._errs = []
-    window.addEventListener(
-        'error',
-        (window._errs.fn = function (e) {
-            window._errs.push(e)
-        }),
-        true
-    )
-</script>
+module.exports = {
+  plugins: [
+    new HtmlPlugin({
+      filename: 'index.html',
+      template: "!!pug-loader!index.pug",
+      templateParameters: { resourceRetryScript },
+    }),
+  ]
+}
 ```
 
-问题：
+## Change Log
 
--   script 入口文件的加载错误需要在 HTML 中单独处理。
+### 3.0
+- feat: addRetryDomain 新增传入一个域名列表的调用方式
+- feat: registerReportFn 触发逻辑修改，忽略未配置重试的域名
+- feat: 新增retryDynamicImport 
+- feat: 忽略带有data-resource-retry-ignore属性的元素
