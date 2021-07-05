@@ -5,19 +5,17 @@ function component() {
   const button = document.createElement('button')
 
   button.innerHTML = 'Click me'
+  button.id = 'test-button'
   element.appendChild(button)
 
   // Note that because a network request is involved, some indication
   // of loading would need to be shown in a production-level site/app.
   button.onclick = () =>
     retryDynamicImport(() => import(/* webpackChunkName: "hello" */ './hello'))
-      .then((module: any) => {
+      .then((module) => {
         const hello = module.default
 
         hello()
-      })
-      .catch(() => {
-        console.log('fuck')
       })
 
   return element
